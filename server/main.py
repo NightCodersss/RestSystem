@@ -6,6 +6,30 @@ import BaseHTTPServer
 HOST_NAME = 'localhost' # !!!REMEMBER TO CHANGE THIS!!!
 PORT_NUMBER = 12888 # Maybe set this to 9000.
 
+class RestSystem:
+    def getResponse(self, data):
+        return {"Oops": "There is no api"}
+
+    def createUser(self, data):
+        pass
+
+    def createPost(self, data):
+        pass
+
+    def hateHashtag(self, data):
+        pass
+
+    def likePost(self, data):
+        pass
+
+    def getAlarms(self, data):
+        pass
+
+    def getPosts(self, data):
+        pass
+
+    def setReleaseTime(self, data):
+        pass
 
 class RestSystemHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_HEAD(s):
@@ -35,6 +59,9 @@ class RestSystemHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             s.wfile.write("{\"error\": \"data is not correct JSON\"}")
             return
         print data
+        res = (RestSystem()).getResponse(data)
+        print "Result:", res
+        s.wfile.write(json.dumps(res))
 
 class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_HEAD(s):
