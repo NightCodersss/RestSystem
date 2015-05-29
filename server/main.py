@@ -16,7 +16,6 @@ def check(data, requied_fields):
     return True
 
 class RestSystem:
-    #TODO: security check
     def status_ok(self):
         return {"status": "ok"}
 
@@ -25,6 +24,8 @@ class RestSystem:
 
     def __init__(self):
         self.sql = sqlite3.connect('rest.db')
+        #TODO: logining
+        self.uid = 228
 
     def getResponse(self, data):
         a = data["action"]
@@ -46,9 +47,22 @@ class RestSystem:
 
     def createUser(self, data):
         c = self.sql.cursor()
-        c.execute("INSERT INTO users (name) VALUES ('{name}')".format(**data));
-        self.sql.commit();
-        return self.status_ok()
+        if check(data, ["name", "gid"]):
+            if self.existGroup(gid):
+                c.execute("INSERT INTO users (name) VALUES (?)", data["name"]);
+                c.execute("INSERT INTO groups_users (gid, uid) values (?, ?)", data["gid"], self.uid);
+                self.sql.commit();
+                return self.status_ok()
+            else:
+                return self.status_error("There is no such group")
+        elif check(data, ["name", "group_name"]):
+            gid = self.createGroup({"name":data["group_name"]})
+            c.execute("INSERT INTO users (name) VALUES (?)", data["name"]);
+            c.execute("INSERT INTO groups_users (gid, uid) values (?, ?)", gid, self.uid);
+            self.sql.commit();
+            return self.status_ok()
+
+        return self.status_error("Some requred fields are not filled");
 
     def createPost(self, data):
         if not check(data, ["text"]):
