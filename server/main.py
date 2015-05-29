@@ -1,3 +1,4 @@
+import sqlite3
 import time
 import json
 import BaseHTTPServer
@@ -7,11 +8,27 @@ HOST_NAME = 'localhost' # !!!REMEMBER TO CHANGE THIS!!!
 PORT_NUMBER = 12888 # Maybe set this to 9000.
 
 class RestSystem:
+    #TODO: security check
+    def status_ok(self):
+        return {"status": "ok"}
+
+    def status_error(self, error):
+        return {"error": error}
+
+    def __init__(self):
+        self.sql = sqlite3.connect('rest.db')
+
     def getResponse(self, data):
-        return {"Oops": "There is no api"}
+        a = data["action"]
+        if a == "create_user":
+            return self.createUser(data)
+        return self.status_error("Action is not found")
 
     def createUser(self, data):
-        pass
+        c = self.sql.cursor()
+        c.execute("INSERT INTO users (name) VALUES ('{name}')".format(**data));
+        self.sql.commit();
+        return self.status_ok()
 
     def createPost(self, data):
         pass
@@ -77,7 +94,6 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         s.wfile.write("<body><p>This is a test.</p>")
         
         
-        import sqlite3
         conn = sqlite3.connect('mydb.db')
         c = conn.cursor()
         c.execute("INSERT INTO entries VALUES (CURRENT_TIMESTAMP);")
