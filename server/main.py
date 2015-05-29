@@ -7,7 +7,7 @@ HOST_NAME = 'localhost' # !!!REMEMBER TO CHANGE THIS!!!
 PORT_NUMBER = 12888 # Maybe set this to 9000.
 
 
-class RestSystem(BaseHTTPServer.BaseHTTPRequestHandler):
+class RestSystemHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_HEAD(s):
         s.send_response(200)
         s.send_header("Content-type", "text/html")
@@ -74,7 +74,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
 if __name__ == '__main__':
     server_class = BaseHTTPServer.HTTPServer
-    httpd = server_class((HOST_NAME, PORT_NUMBER), RestSystem)
+    httpd = server_class((HOST_NAME, PORT_NUMBER), RestSystemHandler)
     print time.asctime(), "Server Starts - %s:%s" % (HOST_NAME, PORT_NUMBER)
     try:
         httpd.serve_forever()
