@@ -7,6 +7,14 @@ import BaseHTTPServer
 HOST_NAME = 'localhost' # !!!REMEMBER TO CHANGE THIS!!!
 PORT_NUMBER = 12888 # Maybe set this to 9000.
 
+def check(data, requied_fields):
+    try:
+        for f in requied_fields:
+            data[f]
+    except:
+        return False
+    return True
+
 class RestSystem:
     #TODO: security check
     def status_ok(self):
@@ -43,6 +51,9 @@ class RestSystem:
         return self.status_ok()
 
     def createPost(self, data):
+        if not check(data, ["text"]):
+            return self.status_error("Some requred fields are not filled");
+            
         return self.status_error("Yet, it is not done.");
 
     def hateHashtag(self, data):
