@@ -20,8 +20,20 @@ class RestSystem:
 
     def getResponse(self, data):
         a = data["action"]
+        
         if a == "create_user":
             return self.createUser(data)
+        if a == "create_post":
+            return self.createPost(data)
+        if a == "hate_hashing":
+            return self.hateHashtag(data)
+        if a == "like_post":
+            return self.likePost(data)
+        if a == "get_alarms":
+            return self.getAlarms(data)
+        if a == "get_posts":
+            return self.getPosts(data)
+
         return self.status_error("Action is not found")
 
     def createUser(self, data):
@@ -31,22 +43,22 @@ class RestSystem:
         return self.status_ok()
 
     def createPost(self, data):
-        pass
+        return self.status_error("Yet, it is not done.");
 
     def hateHashtag(self, data):
-        pass
+        return self.status_error("Yet, it is not done.");
 
     def likePost(self, data):
-        pass
+        return self.status_error("Yet, it is not done.");
 
     def getAlarms(self, data):
-        pass
+        return self.status_error("Yet, it is not done.");
 
     def getPosts(self, data):
-        pass
+        return self.status_error("Yet, it is not done.");
 
     def setReleaseTime(self, data):
-        pass
+        return self.status_error("Yet, it is not done.");
 
 class RestSystemHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_HEAD(s):
