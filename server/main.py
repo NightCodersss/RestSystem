@@ -48,21 +48,37 @@ class RestSystem:
     def createUser(self, data):
         c = self.sql.cursor()
         if check(data, ["name", "gid"]):
-            if self.existGroup(gid):
-                c.execute("INSERT INTO users (name) VALUES (?)", data["name"]);
-                c.execute("INSERT INTO groups_users (gid, uid) values (?, ?)", data["gid"], self.uid);
-                self.sql.commit();
+            if self.existGroup(data["gid"]):
+                c.execute("INSERT INTO users (name) VALUES (?)", (data["name"],));
+                c.execute("INSERT INTO groups_users (gid, uid) values (?, ?)", (data["gid"], self.uid));
+                self.sql.commit()
                 return self.status_ok()
             else:
                 return self.status_error("There is no such group")
         elif check(data, ["name", "group_name"]):
-            gid = self.createGroup({"name":data["group_name"]})
-            c.execute("INSERT INTO users (name) VALUES (?)", data["name"]);
-            c.execute("INSERT INTO groups_users (gid, uid) values (?, ?)", gid, self.uid);
-            self.sql.commit();
+            gid = self.createGroup(data["group_name"])
+            c.execute("INSERT INTO users (name) VALUES (?)", (data["name"], ));
+            c.execute("INSERT INTO groups_users (gid, uid) values (?, ?)", (gid, self.uid));
+            self.sql.commit()
             return self.status_ok()
 
         return self.status_error("Some requred fields are not filled");
+
+    def existGroup(self, gid):
+        #ugly
+        c = self.sql.cursor()
+        for _ in c.execute("SELECT gid FROM groups WHERE gid=?", (gid, )):
+            return True
+        return False
+
+    def createGroup(self, name):
+        c = self.sql.cursor()
+        import random
+        gid = random.randrange(1000000)
+        c.execute("INSERT INTO groups (gid, name) VALUES (?, ?)", (gid, name))
+        self.sql.commit()
+        return gid
+        
 
     def createPost(self, data):
         if not check(data, ["text"]):
