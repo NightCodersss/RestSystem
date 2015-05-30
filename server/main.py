@@ -6,7 +6,7 @@ import BaseHTTPServer
 
 
 HOST_NAME = 'localhost' # !!!REMEMBER TO CHANGE THIS!!!
-PORT_NUMBER = 443
+PORT_NUMBER = 80
 
 def check(data, requied_fields):
     try:
