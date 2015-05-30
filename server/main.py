@@ -81,10 +81,19 @@ class RestSystem:
         
 
     def createPost(self, data):
-        if not check(data, ["text"]):
+        if check(data, ["content", "duration", "start", "end"]):
+            try:
+                c = self.sql.cursor()
+                #get group of user
+                gid = c.execute("SELECT gid FROM group_users WHERE uid=?", (uid,)).next()[0]
+                #creating post
+                c.execute("INSERT INTO posts (gid, author, content, duration, start, end) VALUES (?, ?, ?, ?, ?, ?)", (gid, uid, data["content"], data["duration"], data["start"], data["end"]))
+                self.sql.commit()
+                return self.status_ok() 
+            except:
+                return self.status_error("Something is wrong")
+        else:
             return self.status_error("Some requred fields are not filled");
-            
-        return self.status_error("Yet, it is not done.");
 
     def hateHashtag(self, data):
         return self.status_error("Yet, it is not done.");
