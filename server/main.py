@@ -171,6 +171,7 @@ class RestSystemHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def do_POST(s):
         s.send_response(200)
+        s.send_header("Access-Control-Allow-Origin", "*")
         s.end_headers()
         varLen = int(s.headers['Content-Length'])
         print "Got data:"
