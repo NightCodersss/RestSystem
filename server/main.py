@@ -29,7 +29,7 @@ class RestSystem:
         return {"error": error}
 
     def __init__(self):
-        self.sql = sqlite3.connect('rest.db')
+        self.sql = sqlite3.connect('rest.db', detect_types=sqlite3.PARSE_DECLTYPES)
         #TODO: logining
         self.uid = 228
 
@@ -118,7 +118,39 @@ class RestSystem:
         return self.status_error("Yet, it is not done.");
 
     def getPosts(self, data):
-        return self.status_error("Yet, it is not done.");
+        c = self.sql.cursor()
+        c2 = self.sql.cursor()
+        #get group of user
+        gid = c.execute("SELECT gid FROM groups_users WHERE uid=?", (self.uid,)).next()[0]
+        print "gid: ", gid 
+        #get all not finished posts for this group
+        posts = c.execute("SELECT pid, content, duration, start, end FROM posts WHERE gid=? AND NOT finished", (gid, ))
+        kpost = []
+        for post in posts:
+            #likes, dislikes
+            post = list(post)
+            post.append(c2.execute("SELECT COUNT(*) FROM users_posts_like WHERE pid=? AND like", (post[0], )).next()[0])
+            post.append(c2.execute("SELECT COUNT(*) FROM users_posts_like WHERE pid=? AND NOT like", (post[0], )).next()[0])
+            print "Post:", post
+            lockarma = post[5]
+            kpost.append((lockarma, post))
+
+        kpost.sort(key=lambda kp: kp[0])
+        res_posts = []
+        for kp in kpost:
+            p = kp[1]
+            res_posts.append(
+                    {
+                        "pid": p[0],
+                        "content": p[1],
+                        "duration": datetime.datetime.strptime(p[2],"%Y-%m-%d %H:%M:%S").strftime("%H:%M"),
+                        "start": datetime.datetime.strptime(p[3],"%Y-%m-%d %H:%M:%S").strftime("%H:%M"),
+                        "end": datetime.datetime.strptime(p[4],"%Y-%m-%d %H:%M:%S").strftime("%H:%M"),
+                        "like": p[5],
+                        "dislike": p[6],
+                    }
+                    )
+        return {"status":"ok", "posts": res_posts}
 
     def setReleaseTime(self, data):
         return self.status_error("Yet, it is not done.");
