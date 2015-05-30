@@ -118,11 +118,35 @@ class RestSystem:
 
     def getAlarms(self, data):
         c = self.sql.cursor()
+        c2 = self.sql.cursor()
         #get group of user
         gid = c.execute("SELECT gid FROM groups_users WHERE uid=?", (self.uid,)).next()[0]
+        res_posts = []
 
-        for post in c.execute("SELECT pid FROM posts WHERE gid=? AND date(start) = date('now')", (gid, )):
-            pass
+        for (time, pid) in c.execute("SELECT time, pid FROM alarms WHERE gid=? AND date(start) = date('now')", (gid, )):
+            post = c2.execute("SELECT pid, content, duration, start, end FROM posts WHERE pid=?", (pid, )).next()[0]
+
+            #likes, dislikes
+            post = list(post)
+            post.append(c2.execute("SELECT COUNT(*) FROM users_posts_like WHERE pid=? AND like", (post[0], )).next()[0])
+            post.append(c2.execute("SELECT COUNT(*) FROM users_posts_like WHERE pid=? AND NOT like", (post[0], )).next()[0])
+            
+            p = post
+
+            res_posts.append(
+                    {
+                        "pid": p[0],
+                        "content": p[1],
+                        "duration": datetime.datetime.strptime(p[2],"%Y-%m-%d %H:%M:%S").strftime("%H:%M"),
+                        "start": datetime.datetime.strptime(p[3],"%Y-%m-%d %H:%M:%S").strftime("%H:%M"),
+                        "end": datetime.datetime.strptime(p[4],"%Y-%m-%d %H:%M:%S").strftime("%H:%M"),
+                        "like": p[5],
+                        "dislike": p[6],
+                        "time": time,
+                    }
+                    )
+        return {"status":"ok", "posts": res_posts}
+            
 
     def getLocalKarma(uid, pid):
         c = self.sql.cursor()
