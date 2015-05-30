@@ -100,7 +100,14 @@ class RestSystem:
         return self.status_error("Yet, it is not done.");
 
     def likePost(self, data):
-        return self.status_error("Yet, it is not done.");
+        if check(data, ["pid", "like"]):
+            c = self.sql.cursor()
+            c.execute("DELETE FROM users_posts_like WHERE uid=? AND pid=?", (self.uid, data["pid"]))
+            c.execute("INSERT INTO users_posts_like (uid, pid, like) VALUES (?, ?, ?)", (self.uid, data["pid"], data["like"] == "like"))
+            self.sql.commit()
+            return self.status_ok() 
+        else:
+            return self.status_error("Some requred fields are not filled");
 
     def getAlarms(self, data):
         return self.status_error("Yet, it is not done.");
