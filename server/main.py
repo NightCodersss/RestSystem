@@ -121,7 +121,8 @@ class RestSystem:
         #get group of user
         gid = c.execute("SELECT gid FROM groups_users WHERE uid=?", (self.uid,)).next()[0]
 
-        for post in c.execute("SELECT pid FROM posts WHERE gid=? AND date(start) = date('now')", (gid, ))
+        for post in c.execute("SELECT pid FROM posts WHERE gid=? AND date(start) = date('now')", (gid, )):
+            pass
 
     def getLocalKarma(uid, pid):
         c = self.sql.cursor()
@@ -236,14 +237,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         print "Data:"
         print s.rfile.read(varLen)
 
-
-if __name__ == '__main__':
-    server_class = BaseHTTPServer.HTTPServer
-    httpd = server_class((HOST_NAME, PORT_NUMBER), RestSystemHandler)
-    print time.asctime(), "Server Starts - %s:%s" % (HOST_NAME, PORT_NUMBER)
-    try:
-        httpd.serve_forever()
-    except KeyboardInterrupt:
-        pass
-    httpd.server_close()
-    print time.asctime(), "Server Stops - %s:%s" % (HOST_NAME, PORT_NUMBER)
+def DoAllIwant(poststr):
+    data = json.loads(poststr);
+    res = (RestSystem()).getResponse(data)
+    return res
