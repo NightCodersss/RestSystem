@@ -6,7 +6,7 @@ import BaseHTTPServer
 
 
 HOST_NAME = 'localhost' # !!!REMEMBER TO CHANGE THIS!!!
-PORT_NUMBER = 12888 # Maybe set this to 9000.
+PORT_NUMBER = 443
 
 def check(data, requied_fields):
     try:
@@ -48,6 +48,8 @@ class RestSystem:
             return self.getAlarms(data)
         if a == "get_posts":
             return self.getPosts(data)
+        if a == "set_release_time":
+            return self.setReleaseTime(data)
 
         return self.status_error("Action is not found")
 
@@ -115,7 +117,10 @@ class RestSystem:
             return self.status_error("Some requred fields are not filled");
 
     def getAlarms(self, data):
-        return self.status_error("Yet, it is not done.");
+        c = self.sql.cursor()
+        #get group of user
+        gid = c.execute("SELECT gid FROM groups_users WHERE uid=?", (self.uid,)).next()[0]
+     ########
 
     def getPosts(self, data):
         c = self.sql.cursor()
@@ -153,7 +158,10 @@ class RestSystem:
         return {"status":"ok", "posts": res_posts}
 
     def setReleaseTime(self, data):
-        return self.status_error("Yet, it is not done.");
+        c = self.sql.cursor()
+        c.execute("UPDATE users SET release_time = datetime('now','+240 minutes') WHERE uid=?", (self.uid, ))
+        self.sql.commit()
+        return self.status_ok()
 
 class RestSystemHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_HEAD(s):
@@ -171,6 +179,7 @@ class RestSystemHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def do_POST(s):
         s.send_response(200)
+        s.send_header("Access-Control-Allow-Origin", "*")
         s.end_headers()
         varLen = int(s.headers['Content-Length'])
         print "Got data:"
