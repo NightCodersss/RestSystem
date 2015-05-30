@@ -120,7 +120,13 @@ class RestSystem:
         c = self.sql.cursor()
         #get group of user
         gid = c.execute("SELECT gid FROM groups_users WHERE uid=?", (self.uid,)).next()[0]
-     ########
+
+        for post in c.execute("SELECT pid FROM posts WHERE gid=? AND date(start) = date('now')", (gid, ))
+
+    def getLocalKarma(uid, pid):
+        c = self.sql.cursor()
+        return c.execute("SELECT COUNT(*) FROM users_posts_like WHERE pid=? AND like", (pid, )).next()[0]
+        
 
     def getPosts(self, data):
         c = self.sql.cursor()
