@@ -83,8 +83,7 @@ class RestSystem:
 
     def createPost(self, data):
         if check(data, ["content", "duration", "start", "end"]):
-            #try:
-            if True:
+            try:
                 c = self.sql.cursor()
                 #get group of user
                 gid = c.execute("SELECT gid FROM groups_users WHERE uid=?", (self.uid,)).next()[0]
@@ -92,8 +91,8 @@ class RestSystem:
                 c.execute("INSERT INTO posts (gid, author, content, duration, start, end) VALUES (?, ?, ?, ?, ?, ?)", (gid, self.uid, data["content"], datetime.datetime.strptime(data["duration"], "%H:%M"), datetime.datetime.strptime(data["start"], "%H:%M"), datetime.datetime.strptime(data["end"], "%H:%M")))
                 self.sql.commit()
                 return self.status_ok() 
-            #except:
-            #    return self.status_error("Something is wrong")
+            except:
+                return self.status_error("Something is wrong")
         else:
             return self.status_error("Some requred fields are not filled");
 
