@@ -135,7 +135,7 @@ class RestSystem:
             lockarma = post[5]
             kpost.append((lockarma, post))
 
-        kpost.sort(key=lambda kp: kp[0])
+        kpost.sort(key=lambda kp: -kp[0]) #desc
         res_posts = []
         for kp in kpost:
             p = kp[1]
