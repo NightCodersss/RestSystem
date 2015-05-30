@@ -16,6 +16,11 @@ def check(data, requied_fields):
         return False
     return True
 
+def randomId():
+    import random
+    #TODO: check for duplicates
+    return random.randrange(1000000)
+
 class RestSystem:
     def status_ok(self):
         return {"status": "ok"}
@@ -74,8 +79,7 @@ class RestSystem:
 
     def createGroup(self, name):
         c = self.sql.cursor()
-        import random
-        gid = random.randrange(1000000)
+        gid = randomId()
         c.execute("INSERT INTO groups (gid, name) VALUES (?, ?)", (gid, name))
         self.sql.commit()
         return gid
@@ -88,7 +92,8 @@ class RestSystem:
                 #get group of user
                 gid = c.execute("SELECT gid FROM groups_users WHERE uid=?", (self.uid,)).next()[0]
                 #creating post
-                c.execute("INSERT INTO posts (gid, author, content, duration, start, end) VALUES (?, ?, ?, ?, ?, ?)", (gid, self.uid, data["content"], datetime.datetime.strptime(data["duration"], "%H:%M"), datetime.datetime.strptime(data["start"], "%H:%M"), datetime.datetime.strptime(data["end"], "%H:%M")))
+                pid = randomId()
+                c.execute("INSERT INTO posts (pid, gid, author, content, duration, start, end) VALUES (?, ?, ?, ?, ?, ?, ?)", (pid, gid, self.uid, data["content"], datetime.datetime.strptime(data["duration"], "%H:%M"), datetime.datetime.strptime(data["start"], "%H:%M"), datetime.datetime.strptime(data["end"], "%H:%M")))
                 self.sql.commit()
                 return self.status_ok() 
             except:
