@@ -6,7 +6,7 @@ import BaseHTTPServer
 
 
 HOST_NAME = 'localhost' # !!!REMEMBER TO CHANGE THIS!!!
-PORT_NUMBER = 12888 # Maybe set this to 9000.
+PORT_NUMBER = 443
 
 def check(data, requied_fields):
     try:
@@ -117,7 +117,10 @@ class RestSystem:
             return self.status_error("Some requred fields are not filled");
 
     def getAlarms(self, data):
-        return self.status_error("Yet, it is not done.");
+        c = self.sql.cursor()
+        #get group of user
+        gid = c.execute("SELECT gid FROM groups_users WHERE uid=?", (self.uid,)).next()[0]
+     ########
 
     def getPosts(self, data):
         c = self.sql.cursor()
