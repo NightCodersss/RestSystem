@@ -48,6 +48,8 @@ class RestSystem:
             return self.getAlarms(data)
         if a == "get_posts":
             return self.getPosts(data)
+        if a == "set_release_time":
+            return self.setReleaseTime(data)
 
         return self.status_error("Action is not found")
 
@@ -153,7 +155,10 @@ class RestSystem:
         return {"status":"ok", "posts": res_posts}
 
     def setReleaseTime(self, data):
-        return self.status_error("Yet, it is not done.");
+        c = self.sql.cursor()
+        c.execute("UPDATE users SET release_time = datetime('now','+240 minutes') WHERE uid=?", (self.uid, ))
+        self.sql.commit()
+        return self.status_ok()
 
 class RestSystemHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_HEAD(s):
