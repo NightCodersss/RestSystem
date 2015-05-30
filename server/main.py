@@ -122,9 +122,11 @@ class RestSystem:
         #get group of user
         gid = c.execute("SELECT gid FROM groups_users WHERE uid=?", (self.uid,)).next()[0]
         res_posts = []
+        print "GID:", gid
 
-        for (time, pid) in c.execute("SELECT time, pid FROM alarms WHERE gid=? AND date(start) = date('now')", (gid, )):
-            post = c2.execute("SELECT pid, content, duration, start, end FROM posts WHERE pid=?", (pid, )).next()[0]
+        for (time, pid) in c.execute("SELECT time, pid FROM alarms WHERE gid=? OR date((SELECT AVG(finished) FROM posts WHERE pid=alarms.pid))==1", (gid, )):
+            post = c2.execute("SELECT pid, content, duration, start, end FROM posts WHERE pid=?", (pid, )).next()
+            print "Post:", post
 
             #likes, dislikes
             post = list(post)
