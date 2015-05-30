@@ -122,21 +122,24 @@ class RestSystem:
             dts = time.mktime(dt.timetuple())
             import random
             t = datetime.datetime.fromtimestamp(random.uniform(sts, ets))
-            events.append((pid, t, dts, getKarma(gid, pid, t)))
+            events.append((pid, t, dts, self.getKarma(gid, pid, t)+1))
             for _ in range(events[-1][3]):
                 rnd.append((pid, t,))
 
+        print "Events: ", events
+
         chosen_events = []
         sumt = 0;
-        while sumt < 60*60*1:
+        while sumt < 60*60*1 and rnd != []:
             event = random.choice(rnd)
             chosen_events.append((event[1], event[0], gid)); #time, pid, gid
-            sumt += event[2]
+            sumt += time.mktime(event[1].timetuple())
             nrnd = []
             for r in rnd:
-                if r != event:
+                if r[0] != event[0]:
                     nrnd.append(r)
             rnd = nrnd
+        print "Chosen events:", chosen_events
         c.executemany("INSERT INTO alarms (time, pid, gid) VALUES (?, ?, ?)", chosen_events)
         self.sql.commit()
 
@@ -187,20 +190,20 @@ class RestSystem:
                     )
         return {"status":"ok", "posts": res_posts}
         
-    def getKarma(gid, pid, t):
+    def getKarma(self, gid, pid, t):
         c = self.sql.cursor()
         c2 = self.sql.cursor()
         k = 0
         for (uid,) in c.execute("SELECT uid FROM groups_users WHERE gid = ?", (gid,)):
-            (rt, start, end) = c2.execute("SELECT release_time, start_of_day, end_of_day FROM users WHERE uid=?", (uid,)).next()[0];
-            rt = datetime.datetime.strptime(rt, "%Y-%m-%d %H:%M:%S")
-            start = datetime.datetime.strptime(start, "%Y-%m-%d %H:%M:%S")
-            end = datetime.datetime.strptime(end, "%Y-%m-%d %H:%M:%S")
+            (rt, start, end) = c2.execute("SELECT release_time, start_of_day, end_of_day FROM users WHERE uid=?", (uid,)).next();
+            #rt = datetime.datetime.strptime(rt, "%Y-%m-%d %H:%M:%S")
+            #start = datetime.datetime.strptime(start, "%Y-%m-%d %H:%M:%S")
+            #end = datetime.datetime.strptime(end, "%Y-%m-%d %H:%M:%S")
             if rt <= t and start.time() <= t.time() and t.time() <= end.time():
                 k += getLocalKarma(uid, pid)
         return k
 
-    def getLocalKarma(uid, pid):
+    def getLocalKarma(self, uid, pid):
         c = self.sql.cursor()
         return c.execute("SELECT COUNT(*) FROM users_posts_like WHERE pid=? AND like", (pid, )).next()[0]
         
