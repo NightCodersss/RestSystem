@@ -97,11 +97,43 @@ class RestSystem:
                 pid = randomId()
                 c.execute("INSERT INTO posts (pid, gid, author, content, duration, start, end) VALUES (?, ?, ?, ?, ?, ?, ?)", (pid, gid, self.uid, data["content"], datetime.datetime.strptime(data["duration"], "%H:%M"), datetime.datetime.strptime(data["start"], "%H:%M"), datetime.datetime.strptime(data["end"], "%H:%M")))
                 self.sql.commit()
+                self.recalcAlarms()
                 return self.status_ok() 
             except:
                 return self.status_error("Something is wrong")
         else:
             return self.status_error("Some requred fields are not filled");
+
+    def recalcAlarms():
+        c = self.sql.cursor()
+        #get group of user
+        gid = c.execute("SELECT gid FROM groups_users WHERE uid=?", (self.uid,)).next()[0]
+        
+        c.execute("DELETE FORM alarms WHERE gid=?", (gid,))
+        events = []
+        rnd = []
+        for (pid, start, end, duration) in c.execute("SELECT pid, start, end, duration FROM posts WHERE gid=? AND NOT finished", (gid,))
+            st = datetime.datetime.strptime(start,"%Y-%m-%d %H:%M:%S")
+            et = datetime.datetime.strptime(end,"%Y-%m-%d %H:%M:%S")
+            dt = datetime.datetime.strptime(end,"%Y-%m-%d %H:%M:%S")
+            sts = time.mktime(st.timetuple())
+            ets = time.mktime(et.timetuple())
+            dts = time.mktime(dt.timetuple())
+            import random
+            t = datetime.fromtimestamp(random.uniform(sts, ets))
+            events.append((pid, t, dts, getKarma(gid, pid, t)))
+            for _ in range(events[-1][3]):
+                rnd.append((pid, t,))
+        
+        sumt = 0;
+        while sumt < 60*60*1:
+            t = random.choice(rnd)
+            sumt += t[2]
+        
+
+
+
+
 
     def hateHashtag(self, data):
         return self.status_error("Yet, it is not done.");
@@ -118,9 +150,54 @@ class RestSystem:
 
     def getAlarms(self, data):
         c = self.sql.cursor()
+        c2 = self.sql.cursor()
         #get group of user
         gid = c.execute("SELECT gid FROM groups_users WHERE uid=?", (self.uid,)).next()[0]
-     ########
+        res_posts = []
+        print "GID:", gid
+
+        for (time, pid) in c.execute("SELECT time, pid FROM alarms WHERE gid=? OR date((SELECT AVG(finished) FROM posts WHERE pid=alarms.pid))==1", (gid, )):
+            post = c2.execute("SELECT pid, content, duration, start, end FROM posts WHERE pid=?", (pid, )).next()
+            print "Post:", post
+
+            #likes, dislikes
+            post = list(post)
+            post.append(c2.execute("SELECT COUNT(*) FROM users_posts_like WHERE pid=? AND like", (post[0], )).next()[0])
+            post.append(c2.execute("SELECT COUNT(*) FROM users_posts_like WHERE pid=? AND NOT like", (post[0], )).next()[0])
+            
+            p = post
+
+            res_posts.append(
+                    {
+                        "pid": p[0],
+                        "content": p[1],
+                        "duration": datetime.datetime.strptime(p[2],"%Y-%m-%d %H:%M:%S").strftime("%H:%M"),
+                        "start": datetime.datetime.strptime(p[3],"%Y-%m-%d %H:%M:%S").strftime("%H:%M"),
+                        "end": datetime.datetime.strptime(p[4],"%Y-%m-%d %H:%M:%S").strftime("%H:%M"),
+                        "like": p[5],
+                        "dislike": p[6],
+                        "time": time,
+                    }
+                    )
+        return {"status":"ok", "posts": res_posts}
+        
+    def getKarma(gid, pid, t):
+        c = self.sql.cursor()
+        c2 = self.sql.cursor()
+        k = 0
+        for (uid,) in c.execute("SELECT uid FROM groups_users WHERE gid = ?", (gid,)):
+            (rt, start, end) = c2.execute("SELECT release_time, start_of_day, end_of_day FROM users WHERE uid=?", (uid,)).next()[0];
+            rt = datetime.datetime.strptime(rt, "%Y-%m-%d %H:%M:%S")
+            start = datetime.datetime.strptime(start, "%Y-%m-%d %H:%M:%S")
+            end = datetime.datetime.strptime(end, "%Y-%m-%d %H:%M:%S")
+            if rt <= t and start.time() <= t.time() and t.time() <= end.time():
+                k += getLocalKarma(uid, pid)
+        return k
+
+    def getLocalKarma(uid, pid):
+        c = self.sql.cursor()
+        return c.execute("SELECT COUNT(*) FROM users_posts_like WHERE pid=? AND like", (pid, )).next()[0]
+        
 
     def getPosts(self, data):
         c = self.sql.cursor()
@@ -230,14 +307,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         print "Data:"
         print s.rfile.read(varLen)
 
-
-if __name__ == '__main__':
-    server_class = BaseHTTPServer.HTTPServer
-    httpd = server_class((HOST_NAME, PORT_NUMBER), RestSystemHandler)
-    print time.asctime(), "Server Starts - %s:%s" % (HOST_NAME, PORT_NUMBER)
-    try:
-        httpd.serve_forever()
-    except KeyboardInterrupt:
-        pass
-    httpd.server_close()
-    print time.asctime(), "Server Stops - %s:%s" % (HOST_NAME, PORT_NUMBER)
+def DoAllIwant(poststr):
+    data = json.loads(poststr);
+    res = (RestSystem()).getResponse(data)
+    return res
