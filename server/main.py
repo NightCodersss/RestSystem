@@ -89,7 +89,8 @@ class RestSystem:
 
     def createPost(self, data):
         if check(data, ["content", "duration", "start", "end"]):
-            try:
+            #try:
+            if True:
                 c = self.sql.cursor()
                 #get group of user
                 gid = c.execute("SELECT gid FROM groups_users WHERE uid=?", (self.uid,)).next()[0]
@@ -99,20 +100,20 @@ class RestSystem:
                 self.sql.commit()
                 self.recalcAlarms()
                 return self.status_ok() 
-            except:
-                return self.status_error("Something is wrong")
+            #except:
+            #    return self.status_error("Something is wrong")
         else:
             return self.status_error("Some requred fields are not filled");
 
-    def recalcAlarms():
+    def recalcAlarms(self):
         c = self.sql.cursor()
         #get group of user
         gid = c.execute("SELECT gid FROM groups_users WHERE uid=?", (self.uid,)).next()[0]
         
-        c.execute("DELETE FORM alarms WHERE gid=?", (gid,))
+        c.execute("DELETE FROM alarms WHERE gid=?", (gid,))
         events = []
         rnd = []
-        for (pid, start, end, duration) in c.execute("SELECT pid, start, end, duration FROM posts WHERE gid=? AND NOT finished", (gid,))
+        for (pid, start, end, duration) in c.execute("SELECT pid, start, end, duration FROM posts WHERE gid=? AND NOT finished", (gid,)):
             st = datetime.datetime.strptime(start,"%Y-%m-%d %H:%M:%S")
             et = datetime.datetime.strptime(end,"%Y-%m-%d %H:%M:%S")
             dt = datetime.datetime.strptime(end,"%Y-%m-%d %H:%M:%S")
@@ -120,19 +121,24 @@ class RestSystem:
             ets = time.mktime(et.timetuple())
             dts = time.mktime(dt.timetuple())
             import random
-            t = datetime.fromtimestamp(random.uniform(sts, ets))
+            t = datetime.datetime.fromtimestamp(random.uniform(sts, ets))
             events.append((pid, t, dts, getKarma(gid, pid, t)))
             for _ in range(events[-1][3]):
                 rnd.append((pid, t,))
-        
+
+        chosen_events = []
         sumt = 0;
         while sumt < 60*60*1:
-            t = random.choice(rnd)
-            sumt += t[2]
-        
-
-
-
+            event = random.choice(rnd)
+            chosen_events.append((event[1], event[0], gid)); #time, pid, gid
+            sumt += event[2]
+            nrnd = []
+            for r in rnd:
+                if r != event:
+                    nrnd.append(r)
+            rnd = nrnd
+        c.executemany("INSERT INTO alarms (time, pid, gid) VALUES (?, ?, ?)", chosen_events)
+        self.sql.commit()
 
 
     def hateHashtag(self, data):
