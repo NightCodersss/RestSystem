@@ -88,7 +88,7 @@ class RestSystem:
         
 
     def createPost(self, data):
-        if check(data, ["content", "duration", "start", "end"]):
+        if check(data, ["content", "theme", "duration", "start", "end"]):
             #try:
             if True:
                 c = self.sql.cursor()
@@ -96,7 +96,7 @@ class RestSystem:
                 gid = c.execute("SELECT gid FROM groups_users WHERE uid=?", (self.uid,)).next()[0]
                 #creating post
                 pid = randomId()
-                c.execute("INSERT INTO posts (pid, gid, author, content, duration, start, end) VALUES (?, ?, ?, ?, ?, ?, ?)", (pid, gid, self.uid, data["content"], datetime.datetime.strptime(data["duration"], "%H:%M"), datetime.datetime.strptime(data["start"], "%H:%M"), datetime.datetime.strptime(data["end"], "%H:%M")))
+                c.execute("INSERT INTO posts (pid, gid, author, theme, content, duration, start, end) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (pid, gid, self.uid, data["theme"], data["content"], datetime.datetime.strptime(data["duration"], "%H:%M"), datetime.datetime.strptime(data["start"], "%H:%M"), datetime.datetime.strptime(data["end"], "%H:%M")))
                 self.sql.commit()
                 self.recalcAlarms()
                 return self.status_ok() 
@@ -216,15 +216,17 @@ class RestSystem:
         gid = c.execute("SELECT gid FROM groups_users WHERE uid=?", (self.uid,)).next()[0]
         print "gid: ", gid 
         #get all not finished posts for this group
-        posts = c.execute("SELECT pid, content, duration, start, end FROM posts WHERE gid=? AND NOT finished", (gid, ))
+        posts = c.execute("SELECT pid, content, duration, start, end, theme FROM posts WHERE gid=? AND NOT finished", (gid, ))
         kpost = []
         for post in posts:
             #likes, dislikes
             post = list(post)
-            post.append(c2.execute("SELECT COUNT(*) FROM users_posts_like WHERE pid=? AND like", (post[0], )).next()[0])
-            post.append(c2.execute("SELECT COUNT(*) FROM users_posts_like WHERE pid=? AND NOT like", (post[0], )).next()[0])
+            likes = c2.execute("SELECT COUNT(*) FROM users_posts_like WHERE pid=? AND like", (post[0], )).next()[0]
+            dislikes = c2.execute("SELECT COUNT(*) FROM users_posts_like WHERE pid=? AND NOT like", (post[0], )).next()[0]
+            post.append(likes)
+            post.append(dislikes)
             print "Post:", post
-            lockarma = post[5]
+            lockarma = likes
             kpost.append((lockarma, post))
 
         kpost.sort(key=lambda kp: -kp[0]) #desc
@@ -238,8 +240,9 @@ class RestSystem:
                         "duration": datetime.datetime.strptime(p[2],"%Y-%m-%d %H:%M:%S").strftime("%H:%M"),
                         "start": datetime.datetime.strptime(p[3],"%Y-%m-%d %H:%M:%S").strftime("%H:%M"),
                         "end": datetime.datetime.strptime(p[4],"%Y-%m-%d %H:%M:%S").strftime("%H:%M"),
-                        "like": p[5],
-                        "dislike": p[6],
+                        "like": p[6],
+                        "dislike": p[7],
+                        "theme": p[5],
                     }
                     )
         return {"status":"ok", "posts": res_posts}
