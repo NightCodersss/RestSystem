@@ -36,6 +36,12 @@ class RestSystem:
 
     def getResponse(self, data):
         a = data["action"]
+        if not check(data, ["token"]):
+            return self.status_error("Token is requried")
+        import urllib2
+        user = json.loads(urllib2.urlopen(token_check_url+data["token"]).read())
+        self.uid = user["user_id"]
+        print "UID:", self.uid
         
         if a == "signin":
             return self.signin(data)
@@ -55,14 +61,15 @@ class RestSystem:
         return self.status_error("Action is not found")
 
     def signin(self, data):
-        if not check(data, ["token"]):
-            return self.status_error("Requried fields")
-        import urllib2
-        print urllib2.urlopen(token_check_url+data["token"]).read()
-        return {"instructions": "register"}
+        c = self.sql.cursor()
+        if c.execute("SELECT COUNT(*) FROM users WHERE uid=?", (self.uid, )).next()[0] != 0:
+            return {"instructions": "login"}
+        else:
+            return {"instructions": "register"}
 
     def createUser(self, data):
         c = self.sql.cursor()
+
         if check(data, ["name", "gid"]):
             if self.existGroup(data["gid"]):
                 c.execute("INSERT INTO users (name) VALUES (?)", (data["name"],));

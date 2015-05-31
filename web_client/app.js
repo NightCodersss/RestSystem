@@ -23,7 +23,7 @@ function onSignIn(googleUser)
 		if(data.instructions == "register")
 		{
 			$(".signin").hide()
-			$(".registation").show()
+			$(".registration").show()
 		}
 		else
 		{
@@ -36,6 +36,30 @@ function onSignIn(googleUser)
 $(document).ready(function(){
 	$(".app_window").hide()
 	$(".registration").hide()
+	$(".registration .create").click(function(){
+		$.ajax({
+			url: RestSystemServer,
+			method: "POST",
+			data: JSON.stringify({action: "create_user", token: Token, name: $(".registration .user_name").val(), group_name: $(".registration .group_name").val()}),
+		}).done(function(res) {
+			console.log(res)
+			data = JSON.parse(res)
+			$(".registration").hide()
+			$(".app_window").show()
+		})
+	})
+	$(".registration .join").click(function(){
+		$.ajax({
+			url: RestSystemServer,
+			method: "POST",
+			data: JSON.stringify({action: "create_user", token: Token, name: $(".registration .user_name").val(), gid: $(".registration .gid").val()}),
+		}).done(function(res) {
+			console.log(res)
+			data = JSON.parse(res)
+			$(".registration").hide()
+			$(".app_window").show()
+		})
+	})
 	return
 	$.ajax({
 		url: RestSystemServer,
