@@ -36,6 +36,8 @@ class RestSystem:
     def getResponse(self, data):
         a = data["action"]
         
+        if a == "signin":
+            return self.signin(data)
         if a == "create_user":
             return self.createUser(data)
         if a == "create_post":
@@ -50,6 +52,9 @@ class RestSystem:
             return self.getPosts(data)
 
         return self.status_error("Action is not found")
+
+    def signin(self, data):
+        return {"instructions": "register"}
 
     def createUser(self, data):
         c = self.sql.cursor()

@@ -1,5 +1,8 @@
 <html>
 	<head>
+		<meta name="google-signin-scope" content="profile email">
+		<meta name="google-signin-client_id" content="818859540331-sp5cmkstt759e3k17kviumartq86hjtg.apps.googleusercontent.com">
+		<script src="http://apis.guge.io/js/platform.js" async defer></script>
 		<script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
 		<!-- Latest compiled and minified CSS -->
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
@@ -15,7 +18,16 @@
 	</head>
 <body>
 
-<div class="window">
+<div class="window signin">
+    <div class="g-signin2" data-onsuccess="onSignIn" data-theme="dark"></div>
+</div>
+
+<div class="window registration">
+	Create group: <input type=text placeholder="name"> </input> <button>Create</button> <br>
+	Join group: <input type=text placeholder="ID"> </input> <button>Join</button>	
+</div>
+
+<div class="window app_window">
 	<div class="top_menu">
 	</div>
 	<div class="posts">
