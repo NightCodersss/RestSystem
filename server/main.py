@@ -7,6 +7,7 @@ import BaseHTTPServer
 
 HOST_NAME = 'localhost' # !!!REMEMBER TO CHANGE THIS!!!
 PORT_NUMBER = 12888 # Maybe set this to 9000.
+token_check_url = "https://www.googleapis.com/oauth2/v1/tokeninfo?id_token="
 
 def check(data, requied_fields):
     try:
@@ -54,6 +55,10 @@ class RestSystem:
         return self.status_error("Action is not found")
 
     def signin(self, data):
+        if not check(data, ["token"]):
+            return self.status_error("Requried fields")
+        import urllib2
+        print urllib2.urlopen(token_check_url+data["token"]).read()
         return {"instructions": "register"}
 
     def createUser(self, data):
