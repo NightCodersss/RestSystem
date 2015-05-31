@@ -34,6 +34,24 @@ function onSignIn(googleUser)
 }
 
 $(document).ready(function(){
+	var _oldShow = $.fn.show;
+	 $.fn.show = function(speed, oldCallback) {
+		 return $(this).each(function() {
+			 var obj         = $(this),
+				newCallback = function() {
+					if ($.isFunction(oldCallback)) {
+						oldCallback.apply(obj);
+					}
+					obj.trigger('afterShow');
+				};
+
+		 // you can trigger a before show if you want
+		 obj.trigger('beforeShow');
+
+		 // now use the old function to show the element passing the new callback
+		 _oldShow.apply(obj, [speed, newCallback]);
+		 });
+	 }
 	$(".app_window").hide()
 	$(".registration").hide()
 	$(".registration .create").click(function(){
@@ -60,14 +78,15 @@ $(document).ready(function(){
 			$(".app_window").show()
 		})
 	})
-	$.ajax({
-		url: RestSystemServer,
+	$(".app_window").bind('beforeShow', function(){
+		$.ajax({
+			url: RestSystemServer,
 		method: "POST",
-		data: JSON.stringify({action: "get_posts"}),
-	}).done(function(res) {
-		console.log(res)
-		data = JSON.parse(res)
-		for(var p in data.posts)
+		data: JSON.stringify({action: "get_posts", token: Token}),
+		}).done(function(res) {
+			console.log(res)
+			data = JSON.parse(res)
+			for(var p in data.posts)
 		{
 			e = $("<div class='post'><div class='content'></div><div class='like-panel'><div class='likes'></div><div class='dislikes'></div></div></div>")
 			$(".posts").append(e)
@@ -75,5 +94,6 @@ $(document).ready(function(){
 			e.find(".like-panel .likes").text(data.posts[p].like)
 			e.find(".like-panel .dislikes").text(data.posts[p].dislike)
 		}
+		});
 	});
 });
