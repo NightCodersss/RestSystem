@@ -321,4 +321,4 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 def DoAllIwant(poststr):
     data = json.loads(poststr);
     res = (RestSystem()).getResponse(data)
-    return res
+    return json.dumps(res)
