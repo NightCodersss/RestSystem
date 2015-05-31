@@ -1,17 +1,18 @@
-from flask import Flask
+from flask import Flask, request
 import main
 app = Flask(__name__)
 
-@app.route('/')
+@app.route('/', methods = ['POST'])
 def index():
     data = ""  
-    for t in request.POST:
-        data += t
     try:
-        return DoAllIwant(data)
-    except:
-        return '{error: "error"}'
-#    return "error!"
+     #   for t in request.POST:
+     #           data += t
+#        return main.DoAllIwant(request.get_data())
+        return main.getOlool(request.get_data())
+    except Exception as abc:
+#        return str("Pavel's exception: " + abc)
+        return "error!"
 
 if __name__ == '__main__':
     app.run()

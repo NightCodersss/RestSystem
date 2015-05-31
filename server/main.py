@@ -7,6 +7,8 @@ import BaseHTTPServer
 
 HOST_NAME = 'localhost' # !!!REMEMBER TO CHANGE THIS!!!
 PORT_NUMBER = 80
+def getOlool(data):
+    return "Ololo, " + data 
 
 def check(data, requied_fields):
     try:
