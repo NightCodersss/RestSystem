@@ -40,7 +40,7 @@ class RestSystem:
             return self.status_error("Token is requried")
         import urllib2
         user = json.loads(urllib2.urlopen(token_check_url+data["token"]).read())
-        self.uid = user["user_id"]
+        self.uid = int(user["user_id"][0:7])
         print "UID:", self.uid
         
         if a == "signin":
@@ -62,6 +62,7 @@ class RestSystem:
 
     def signin(self, data):
         c = self.sql.cursor()
+        print "Lo", c.execute("SELECT COUNT(*) FROM users WHERE uid=?", (self.uid, )).next()[0]
         if c.execute("SELECT COUNT(*) FROM users WHERE uid=?", (self.uid, )).next()[0] != 0:
             return {"instructions": "login"}
         else:
@@ -72,7 +73,7 @@ class RestSystem:
 
         if check(data, ["name", "gid"]):
             if self.existGroup(data["gid"]):
-                c.execute("INSERT INTO users (name) VALUES (?)", (data["name"],));
+                c.execute("INSERT INTO users (name, uid) VALUES (?, ?)", (data["name"],self.uid));
                 c.execute("INSERT INTO groups_users (gid, uid) values (?, ?)", (data["gid"], self.uid));
                 self.sql.commit()
                 return self.status_ok()
@@ -80,7 +81,7 @@ class RestSystem:
                 return self.status_error("There is no such group")
         elif check(data, ["name", "group_name"]):
             gid = self.createGroup(data["group_name"])
-            c.execute("INSERT INTO users (name) VALUES (?)", (data["name"], ));
+            c.execute("INSERT INTO users (name, uid) VALUES (?, ?)", (data["name"], self.uid ));
             c.execute("INSERT INTO groups_users (gid, uid) values (?, ?)", (gid, self.uid));
             self.sql.commit()
             return self.status_ok()
