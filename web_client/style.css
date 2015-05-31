@@ -1,6 +1,24 @@
 .window
 {
-	width: 100%;
-	max-width: 400px;
-	background: gray;
+	position: absolute;
+	padding: 20px;
+	padding-top: 40px;
+	width: 400px;
+	background: #ddd;
+	left: 50%;
+	margin-left: -200px;
+}
+
+.signin-google
+{
+	position: relative;
+	left: 50%;
+	width: 120px;
+	margin-left: -60px;
+}
+
+.registration input, button
+{
+	margin-top: 5px;
+	margin-bottom: 5px;
 }

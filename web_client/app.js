@@ -1,5 +1,5 @@
 var RestSystemServer = "http://localhost:12888"
-var Token;
+var Token="olo";
 
 function onSignIn(googleUser)
 {
@@ -60,7 +60,6 @@ $(document).ready(function(){
 			$(".app_window").show()
 		})
 	})
-	return
 	$.ajax({
 		url: RestSystemServer,
 		method: "POST",
