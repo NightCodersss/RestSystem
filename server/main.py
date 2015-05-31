@@ -153,6 +153,7 @@ class RestSystem:
             c.execute("DELETE FROM users_posts_like WHERE uid=? AND pid=?", (self.uid, data["pid"]))
             c.execute("INSERT INTO users_posts_like (uid, pid, like) VALUES (?, ?, ?)", (self.uid, data["pid"], data["like"] == "like"))
             self.sql.commit()
+            self.recalcAlarms()
             return self.status_ok() 
         else:
             return self.status_error("Some requred fields are not filled");
@@ -205,7 +206,7 @@ class RestSystem:
 
     def getLocalKarma(self, uid, pid):
         c = self.sql.cursor()
-        return c.execute("SELECT COUNT(*) FROM users_posts_like WHERE pid=? AND like", (pid, )).next()[0]
+        return c.execute("SELECT COUNT(*) FROM users_posts_like WHERE pid=? AND uid=? AND like", (pid, uid )).next()[0]
         
 
     def getPosts(self, data):
@@ -247,6 +248,7 @@ class RestSystem:
         c = self.sql.cursor()
         c.execute("UPDATE users SET release_time = datetime('now','+240 minutes') WHERE uid=?", (self.uid, ))
         self.sql.commit()
+        self.recalcAlarms()
         return self.status_ok()
 
 class RestSystemHandler(BaseHTTPServer.BaseHTTPRequestHandler):
